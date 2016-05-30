@@ -1,0 +1,134 @@
+#######################################
+##   DATA CONTAINER :                ##
+#######################################
+data:
+    image: busybox
+    container_name: ci-data-container
+    volumes:
+        - /home/git/data
+        - /var/lib/postgresql
+        - /var/lib/redis
+        - /var/lib/elasticsearch
+        - /var/log/jenkins
+        - /var/jenkins_home
+        - /opt/sonarqube
+
+#######################################
+##   GITLAB :                        ##
+#######################################
+gitlab-db:
+    image: postgres
+    container_name: ci-gitlab-postgres
+    environment:
+        - POSTGRES_USER=gitlab
+        - POSTGRES_PASSWORD=gitlab-db-password
+        - POSTGRES_DB=gitlab
+    volumes_from:
+        - data
+
+gitlab-redis:
+    image: sameersbn/redis:latest
+    container_name: ci-gitlab-redis
+    volumes_from:
+        - data
+
+gitlab:
+    image: sameersbn/gitlab:latest
+    container_name: ci-gitlab
+    restart: always
+    ports:
+        - "10080:80"
+        - "10022:22"
+        - "587:587"
+        - "993:993"
+    links:
+        - gitlab-db
+        - gitlab-redis
+    environment:
+        - DB_HOST=gitlab-db
+        - DB_NAME=gitlab
+        - DB_USER=gitlab
+        - DB_PASS=gitlab-db-password
+        - REDIS_HOST=gitlab-redis
+
+        - TZ=Europe/Paris
+        - GITLAB_TIMEZONE=Paris
+
+        - GITLAB_SECRETS_DB_KEY_BASE=long-and-random-alphanumeric-string
+
+        - GITLAB_HOST=gitlab.yourhost
+        - GITLAB_PORT=10080
+        - GITLAB_SSH_PORT=10022
+
+        - GITLAB_NOTIFY_ON_BROKEN_BUILDS=true
+        - GITLAB_NOTIFY_PUSHER=false
+
+        - GITLAB_EMAIL=example@gmail.com
+        - GITLAB_EMAIL_REPLY_TO=example@gmail.com
+        - GITLAB_INCOMING_EMAIL_ADDRESS=USER+%{key}@gmail.com
+
+        - GITLAB_BACKUPS=daily
+        - GITLAB_BACKUP_TIME=01:00
+
+        - SMTP_ENABLED=true
+        - SMTP_DOMAIN=gmail.com
+        - SMTP_HOST=smtp.gmail.com
+        - SMTP_PORT=587
+        - SMTP_USER=example@gmail.com
+        - SMTP_PASS=password
+        - SMTP_STARTTLS=true
+        - SMTP_AUTHENTICATION=login
+
+        - IMAP_ENABLED=false
+        - IMAP_HOST=imap.gmail.com
+        - IMAP_PORT=993
+        - IMAP_USER=example@gmail.com
+        - IMAP_PASS=password
+        - IMAP_SSL=true
+        - IMAP_STARTTLS=false
+    volumes_from:
+        - data
+
+
+#######################################
+##   JENKINS :                       ##
+#######################################
+jenkins:
+    build: ./jenkins
+    restart: always
+    container_name: ci-jenkins
+    ports:
+        - "18080:8080"
+        - "50000:5000"
+    volumes_from:
+        - data
+    volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    links:
+        - gitlab
+        - sonar
+    environment:
+        - SONAR_PORT=9000
+        - SONAR_DB_PORT=5432
+
+#######################################
+##   SONAR :                         ##
+#######################################
+sonar-db:
+    image: postgres
+    container_name: ci-sonar-db
+    environment:
+        - POSTGRES_USER=sonar
+        - POSTGRES_PASSWORD=sonar
+
+sonar:
+    build: ./sonar
+    container_name: ci-sonar
+    restart: always
+    ports:
+        - "19000:9000"
+        - "5432:5432"
+    links:
+        - sonar-db
+    environment:
+        - SONARQUBE_JDBC_URL=jdbc:postgresql://sonar-db:5432/sonar
