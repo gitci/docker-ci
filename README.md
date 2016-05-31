@@ -7,7 +7,7 @@ This GitHub repository contains Dockerfiles for running a set of Continuous Inte
 To get all docker containers running, clone this repo, open docker-compose.yml and edit password + emails, then run:
 
 ```
-# cd docker-ci-tool-stack
+# cd docker-ci
 # docker-compose up
 ```
 
