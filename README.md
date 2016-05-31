@@ -27,5 +27,5 @@ Here is an overview of all tools:
 
 ## TODO
 - Add the ELK stack to monitor logs on all services / containers
-- Add Selenium Hub
+- Document Selenium Hub usage
 - Add a Docker Registry

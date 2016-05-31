@@ -132,3 +132,27 @@ sonar:
         - sonar-db
     environment:
         - SONARQUBE_JDBC_URL=jdbc:postgresql://sonar-db:5432/sonar
+
+
+#######################################
+##   SELENIUM :                      ##
+#######################################
+selenium-hub:
+    image: selenium/hub
+    container_name: ci-selenium-hub
+    ports:
+        - "4444:4444"
+
+# selenium-node-firefox:
+#     image: selenium/node-firefox
+#     ports:
+#         - 5900
+#     links:
+#         - selenium-hub
+#
+# selenium-node-chrome:
+#     image: selenium/node-chrome
+#     ports:
+#         - 5900
+#     links:
+#         - selenium-hub
