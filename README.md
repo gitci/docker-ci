@@ -29,3 +29,4 @@ Here is an overview of all tools:
 - Add the ELK stack to monitor logs on all services / containers
 - Add Selenium Hub
 - Add a Docker Registry
+- Jenkins Master-Slave
